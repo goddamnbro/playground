@@ -2,43 +2,33 @@ package main
 
 import (
 	"fmt"
+	"playground/storage"
 
 	"github.com/mediocregopher/radix.v2/pool"
 )
 
-type Storage interface {
-	Set(string)
-	Get(string) string
-}
-
-type RedisStorage struct {
-	Pool *pool.Pool
-}
-
 func main() {
+	// create Pool
 	pool, err := pool.New("tcp", "localhost:6379", 10)
 	if err != nil {
 		fmt.Errorf("pool: %v", err)
 	}
 
-	rs := RedisStorage{
+	// create RedisStorage
+	rs := &storage.RedisStorage{
 		Pool: pool,
 	}
 
-	conn, err := rs.Pool.Get()
+	// test Set
+	err = rs.Set("test1@example.com", "dfdfdf")
 	if err != nil {
 		fmt.Errorf("conn: %v", err)
 	}
-	defer conn.Close()
 
-	resp := conn.Cmd("SET", "test1@example.com", "dfdfdf")
-	if resp.Err != nil {
-		fmt.Errorf("conn SET: %v")
-	}
-
-	foo, err := conn.Cmd("GET", "test1@example.com").Str()
+	// test Get
+	data, err := rs.Get("test1@example.com")
 	if err != nil {
-		fmt.Errorf("conn GET: %v")
+		fmt.Errorf("conn: %v", err)
 	}
-	fmt.Println("-->", foo)
+	fmt.Println("-->", data)
 }
